@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aplikasi Chat</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="wadah-utama">
+      <!-- KARTU LOGIN / DAFTAR -->
+      <div id="kartu-auth" class="kartu-login">
+        <div class="kartu-bungkus">
+          <h1 class="judul-app">💬 Aplikasi Chat</h1>
+
+          <div class="tab-pilihan">
+            <button class="tab-btn aktif" data-tab="masuk">Masuk</button>
+            <button class="tab-btn" data-tab="daftar">Daftar</button>
+          </div>
+
+          <div class="isi-tab aktif" id="tab-masuk">
+            <input type="email" id="email-masuk" placeholder="Alamat Email" />
+            <input type="password" id="sandi-masuk" placeholder="Kata Sandi" />
+            <button class="btn-utama" onclick="masuk()">Masuk Akun</button>
+            <p class="pesan" id="pesan-masuk"></p>
+          </div>
+
+          <div class="isi-tab" id="tab-daftar">
+            <input type="text" id="nama-daftar" placeholder="Nama Lengkap" />
+            <input type="email" id="email-daftar" placeholder="Alamat Email" />
+            <button class="btn-kedua" onclick="kirimKode()">
+              Kirim Kode Verifikasi
+            </button>
+            <input
+              type="text"
+              id="kode-verifikasi"
+              placeholder="Kode 6 Digit"
+              maxlength="6"
+            />
+            <input
+              type="password"
+              id="sandi-daftar"
+              placeholder="Kata Sandi (min. 6 karakter)"
+            />
+            <button class="btn-utama" onclick="daftar()">Buat Akun</button>
+            <p class="pesan" id="pesan-daftar"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- HALAMAN CHAT (TERSEMBUNYI AWALNYA) -->
+      <div id="halaman-chat" class="halaman-chat tersembunyi">
+        <div class="kolom-kiri">
+          <div class="profil-saya">
+            <strong id="nama-saya"></strong>
+            <small id="peran-saya"></small>
+            <button class="btn-keluar" onclick="keluar()">Keluar</button>
+          </div>
+          <h3>Daftar Pengguna</h3>
+          <div id="daftar-pengguna"></div>
+        </div>
+
+        <div class="kolom-kanan">
+          <div class="bilah-judul">
+            <span id="nama-pasangan">Pilih pengguna untuk memulai obrolan</span>
+          </div>
+          <div id="ruang-pesan"></div>
+          <div class="baris-kirim">
+            <input
+              type="text"
+              id="input-pesan"
+              placeholder="Tulis pesan..."
+              onkeypress="jikaEnter(event)"
+            />
+            <button onclick="kirimPesan()">Kirim</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

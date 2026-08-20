@@ -1,0 +1,18 @@
+{
+  "name": "chat-app-gsheet",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^6.9.14",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "googleapis": "^134.0.0"
+  }
+}
