@@ -1,6 +1,9 @@
 let penggunaSaya = null;
 let pasanganDipilih = null;
 let soket = null;
+let suaraNotifikasi = new Audio(
+  "https://assets.mixkit.co/sfx/preview/mixkit-software-interface-start-2574.mp3",
+);
 
 document.querySelectorAll(".tab-btn").forEach((btn) => {
   btn.addEventListener("click", () => {
@@ -136,6 +139,8 @@ function masukAplikasi() {
   soket.emit("masuk", penggunaSaya.id);
   soket.on("pesan-baru", tampilPesan);
   soket.on("status-pengguna", perbaruiDaftarPengguna);
+  soket.on("pesan-dibaca", tandaiSudahDibaca);
+  muatRiwayatPesan();
   muatDaftarPengguna();
 }
 
@@ -176,6 +181,11 @@ function pilihPengguna(pasangan, elemen) {
   pasanganDipilih = pasangan;
   document.getElementById("nama-pasangan").textContent = pasangan.nama;
   document.getElementById("ruang-pesan").innerHTML = "";
+  muatRiwayatPesan();
+  soket.emit("tandai-terbaca", {
+    pengirimId: pasangan.id,
+    penerimaId: penggunaSaya.id,
+  });
 }
 
 function kirimPesan() {
@@ -183,15 +193,16 @@ function kirimPesan() {
   const teks = document.getElementById("input-pesan").value.trim();
   if (!teks) return;
 
+  const sekarang = new Date();
   const data = {
+    id: Date.now(),
     pengirimId: penggunaSaya.id,
     penerimaId: pasanganDipilih.id,
     isi: teks,
-    waktu: new Date().toLocaleTimeString("id-ID", {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
+    waktu: formatWaktu(sekarang),
+    dibaca: false,
   };
+  simpanKeRiwayat(data);
   soket.emit("kirim-pesan", data);
   tampilPesan(data);
   document.getElementById("input-pesan").value = "";
@@ -200,10 +211,66 @@ function kirimPesan() {
 function tampilPesan(data) {
   const wadah = document.getElementById("ruang-pesan");
   const el = document.createElement("div");
-  el.className = `pesan ${data.pengirimId === penggunaSaya.id ? "saya" : "anda"}`;
-  el.innerHTML = `${data.isi}<br><small>${data.waktu}</small>`;
+  const adalahSaya = data.pengirimId === penggunaSaya.id;
+  el.className = `pesan ${adalahSaya ? "saya" : "anda"}`;
+
+  const tandaBaca = adalahSaya
+    ? `<span class="tanda-baca ${data.dibaca ? "sudah" : "belum"}">${data.dibaca ? "✅" : "✦"}</span>`
+    : "";
+
+  el.innerHTML = `${data.isi}<br><small>${data.waktu} ${tandaBaca}</small>`;
   wadah.appendChild(el);
   wadah.scrollTop = wadah.scrollHeight;
+
+  if (!adalahSaya) {
+    putarSuaraNotifikasi();
+    data.dibaca = true;
+    soket.emit("tandai-terbaca", {
+      pengirimId: penggunaSaya.id,
+      penerimaId: pasanganDipilih?.id,
+    });
+  }
+}
+
+function tandaiSudahDibaca(data) {
+  const semuaPesan = document.querySelectorAll(".pesan.saya .tanda-baca");
+  semuaPesan.forEach((el) => {
+    el.textContent = "✅";
+    el.classList.remove("belum");
+    el.classList.add("sudah");
+  });
+}
+
+function formatWaktu(tanggal) {
+  const h = tanggal.getHours().toString().padStart(2, "0");
+  const m = tanggal.getMinutes().toString().padStart(2, "0");
+  const hari = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"][
+    tanggal.getDay()
+  ];
+  return `${hari}, ${h}:${m}`;
+}
+
+function putarSuaraNotifikasi() {
+  suaraNotifikasi.volume = 0.3;
+  suaraNotifikasi.currentTime = 0;
+  suaraNotifikasi.play().catch(() => {});
+}
+
+function simpanKeRiwayat(data) {
+  if (!pasanganDipilih) return;
+  const kunci = `riwayat_${penggunaSaya.id}_${pasanganDipilih.id}`;
+  let riwayat = JSON.parse(localStorage.getItem(kunci) || "[]");
+  riwayat.push(data);
+  if (riwayat.length > 100) riwayat = riwayat.slice(-100);
+  localStorage.setItem(kunci, JSON.stringify(riwayat));
+}
+
+function muatRiwayatPesan() {
+  if (!pasanganDipilih) return;
+  const kunci = `riwayat_${penggunaSaya.id}_${pasanganDipilih.id}`;
+  const riwayat = JSON.parse(localStorage.getItem(kunci) || "[]");
+  document.getElementById("ruang-pesan").innerHTML = "";
+  riwayat.forEach((pesan) => tampilPesan(pesan));
 }
 
 function jikaEnter(e) {
